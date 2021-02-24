@@ -49,21 +49,28 @@
       '(\'GxIxTxHxUxB\')'
     ], [
       /(if\s*\(.+\)\s*)?((\$|console)\.(log|msg|logErr))\(.+?(\u52A9\u529B|\u4e92\u52a9)\u7801.+?(share|code|encrypt|pin|token|uuid)/ig,
-      'void(0) \/\/ $&'
+      'void(0) // $&'
     ], [
       /(if\s*\(.+\)\s*)?((\$|console)\.(log|msg|logErr))\(.+?[^\[]['"`{]\s*cookie\s*['"`}]/ig,
-      'void(0) \/\/ $&'
+      'void(0) // $&'
     ], [
       /(?<=const helpAu = )true/ig, 'false'
     ], [
       /(if\s*\(.+?\)\s*)?await\s+helpAuthor\d*\(\)/ig,
-      '\/\/ $&'
+      '// $&'
     ]
   ];
 
   [...new Set(getFiles('./.github/workflows', ['yml', 'yaml']).concat('_mod.js'))].forEach(removeFile);
   [...new Set(getFiles('./', ['js']).concat(getFiles('./activity', ['js'])))].forEach(f => {
-    replaceFileContent(f, rules);
+    let r = rules;
+    if (f.includes('jd_joy')) {
+      r = [...r, [
+        /((\$|console)\.(log|msg|logErr))\(`.*debug::\$\{data\}/g,
+        '// $&'
+      ]]
+    }
+    replaceFileContent(f, r);
   });
 
 })();
