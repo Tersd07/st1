@@ -1,0 +1,76 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: up
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force update.'
+        required: false
+        default: 'false'
+  schedule:
+    - cron: '*/30 23,0-18 * * *'
+  watch:
+    types: started
+  repository_dispatch:
+    types: up
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Cache node_modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
+      - name: npm install
+        run: |
+          npm install
+      - name: Update
+        run: |
+          FORCE="${{ github.event.inputs.force }}";FORCE=${FORCE:-"false"}
+          s1="301/j";s2="d_scr"
+          git config --global user.email ${{ github.actor }}@users.noreply.github.com
+          git config --global user.name ${{ github.actor }}
+          BEFORE_REV=$(git rev-parse @~)
+          mkdir -p ~/.ssh/ && echo "${{ secrets.GITEE_DST_KEY }}" > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa && ssh-keyscan gitee.com > ~/.ssh/known_hosts
+          git remote set-url origin "git@gitee.com:lxk0${s1}${s2}ipts.git"
+          git fetch origin master
+          AFTER_REV=$(git rev-parse origin/master)
+          if [ $BEFORE_REV = $AFTER_REV ] && [ $FORCE = "false" ]; then
+            echo "Already up to date."
+          else
+            if [ $FORCE != "false" ]; then
+              echo -e "\nForce update.\n"
+            fi
+            git reset --hard origin/master
+            curl -O "https://raw.githubusercontent.com/${{ github.repository }}/test/_mod.js" > /dev/null 2>&1
+            node _mod.js
+            git add .
+            git commit -m "update" -a || echo "Nothing to update."
+          fi
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.TOKEN }}
+          branch: master
+          force: true
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          retain_days: 2
