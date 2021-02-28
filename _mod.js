@@ -48,12 +48,13 @@
   ];
 
   const rules2 = [
-    [/d_crazy_j|d_jdzz\./, [/(?<=\u8981\u52a9\u529b\u7684\u597d\u53cb\$\{)JSON\.stringify\(.+?\)(?=\})/g, `$&.replace(/"[^"]+",/, '')`],],
+    [/d_crazy_j|d_jdzz\./, [/(?<=\u8981\u52a9\u529b\u7684\u597d\u53cb\$\{)JSON\.stringify\(.+?\)(?=\})/g, `$&.replace(/"[^"]+",/, '')`]],
     [ 'd_cash.',
       [/(?<=\u8981\u52a9\u529b\u7684\u597d\u53cb\$\{)JSON\.stringify\(.+?\)(?=\})/g, `$&.replace(/\{[^}]+\},/, '')`],
       [/(?<=\u53bb\u5e2e\u52a9\u597d\u53cb)\$\{code\['[^']+'\]\}/g, '***']
     ],
     ['speed_redpo', [/await _0x\w+\[[^\]]+?\]\(invite\d*\);/g, '']],
+    ['d_crazy_joy.', [/var _0x\w+='jsj.+?getAuthorShareCode/, '// $&']],
   ];
 
   [...new Set(getFiles('./.github/workflows', ['yml', 'yaml']).concat('_mod.js'))].forEach(removeFile);
