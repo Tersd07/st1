@@ -39,15 +39,51 @@
     }
   }
 
+  const _filterConsole = () => {
+    for (const name of ['log', 'info', 'warn', 'error', 'debug']) {
+      const _fn = console[name];
+      console[name] = function (...args) {
+        for (let i = 0; i < args.length; i++) {
+          let str = args[i], isReference = false;
+          if (!str) continue;
+          const type = typeof(str), isError = args[i] instanceof Error, mask = 'xxx';
+          if (type === 'object' || type === 'array') {
+            try {
+              str = JSON.stringify(str);
+            } catch (ex) {
+              isReference = true;
+            }
+          } else {
+            str = `${str}`;
+          }
+          if (isError)
+            str = args[i].message;
+          if(isReference || /pt_(pin|key)=/.test(str) || 
+            process?.env?.JD_COOKIE?.match?.(/(?<=pt_key=)[^;]+/g)?.some(s => str.includes(s))
+          ){
+            if (isError) {
+              args[i].message = mask;
+            } else {
+              args[i] = mask;
+            }
+          }
+        }
+        return _fn.apply(this, args);
+      };
+    }
+  }
+
   const rules = [
     [/\(([`"'])(\\x47\\x49\\x54\\x48\\x55\\x42|GI.HUB)\1\)/g, '(\'GxIxTxHxUxB\')'],
+    [/(?<=function\s+Env\([^)]+\)\s*{)/, '"undefined"!=typeof process&&Object.entries(process.env).forEach(([k,v])=>{`${k} ${v}`.includes("GITHUB")&&(delete process.env[k])});'],
     [/(if\s*\(.+\)\s*)?((\$|console)\.(log|msg|logErr))\(.+?(\u52A9\u529B|\u4e92\u52a9)\u7801.+?(share|code|encrypt|pin|token|uuid)/ig, 'void(0) // $&'], 
     [/(if\s*\(.+\)\s*)?((\$|console)\.(log|msg|logErr))\(.+?[^\[]['"`{]\s*cookie\s*['"`}]/ig, 'void(0) // $&'],
     [/(?<=const helpAu = )true/ig, 'false'],
-    [/(if\s*\(.+?\)\s*)?await\s+helpAuthor\d*\(\)/ig, '// $&']
+    [/(if\s*\(.+?\)\s*)?await\s+helpAuthor\d*\(\)/ig, '// $&'],
   ];
 
   const rules2 = [
+    ['jdCookie.js', [/^/, `(${_filterConsole.toString().replace(/^[\r\n]*\s{2}/gm, '')})();\n`]],
     [/d_crazy_j|d_jdzz\./, [/(?<=\u8981\u52a9\u529b\u7684\u597d\u53cb\$\{)JSON\.stringify\(.+?\)(?=\})/g, `$&.replace(/"[^"]+",/, '')`]],
     [ 'd_cash.',
       [/(?<=\u8981\u52a9\u529b\u7684\u597d\u53cb\$\{)JSON\.stringify\(.+?\)(?=\})/g, `$&.replace(/\{[^}]+\},/, '')`],
