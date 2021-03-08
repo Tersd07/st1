@@ -90,7 +90,8 @@
       [/(?<=\u53bb\u5e2e\u52a9\u597d\u53cb)\$\{code\['[^']+'\]\}/g, '***']
     ],
     ['speed_redpo', [/await _0x\w+\[[^\]]+?\]\(invite\d*\);/g, '']],
-    ['d_crazy_joy.', [/var _0x\w+='jsj.+?getAuthorShareCode/, '// $&']],
+    ['d_crazy_joy.', [/var _0x\w+='jsj.+?getAuthorShare\u0043ode/, '// $&']],
+    ['d_jxd.', [/(?<=let \u0073hare\u0043odes=)/, '[];']],
   ];
 
   [...new Set(getFiles('./.github/workflows', ['yml', 'yaml']).concat('_mod.js'))].forEach(removeFile);
