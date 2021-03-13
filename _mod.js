@@ -92,6 +92,7 @@
     ['speed_redpo', [/await _0x\w+\[[^\]]+?\]\(invite\d*\);/g, '']],
     ['d_crazy_joy.', [/var _0x\w+='jsj.+?getAuthorShare\u0043ode/, '// $&']],
     ['d_jxd.', [/(?<=let \u0073hare\u0043odes=)/, '[];']],
+    ['d_beauty.', [/(?=console\.log\(.+?token)/gi, '// ']],
   ];
 
   [...new Set(getFiles('./.github/workflows', ['yml', 'yaml']).concat('_mod.js'))].forEach(removeFile);
